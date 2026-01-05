@@ -1,0 +1,157 @@
+// Prisma Schema for School Bus Tracker
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// School entity
+model School {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buses    Bus[]
+  routes   Route[]
+  parents  Parent[]
+  students Student[]
+}
+
+// Bus linked to Traccar device
+model Bus {
+  id              Int      @id @default(autoincrement())
+  name            String   // e.g., "Bus 101"
+  licensePlate    String?
+  traccarDeviceId Int      // Links to Traccar device ID
+  traccarUniqueId String   // Traccar device uniqueId for lookup
+  capacity        Int?
+  schoolId        Int
+  driverId        Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  school   School    @relation(fields: [schoolId], references: [id])
+  driver   Driver?   @relation(fields: [driverId], references: [id])
+  routes   Route[]
+  students Student[]
+
+  @@unique([traccarDeviceId])
+  @@unique([traccarUniqueId])
+}
+
+// Driver
+model Driver {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buses Bus[]
+}
+
+// Route with ordered stops
+model Route {
+  id          Int      @id @default(autoincrement())
+  name        String   // e.g., "Morning Route A"
+  description String?
+  type        RouteType @default(MORNING)
+  schoolId    Int
+  busId       Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id])
+  bus    Bus?   @relation(fields: [busId], references: [id])
+  stops  Stop[]
+}
+
+enum RouteType {
+  MORNING
+  AFTERNOON
+  BOTH
+}
+
+// Bus stop location
+model Stop {
+  id          Int      @id @default(autoincrement())
+  name        String   // e.g., "Green Park Main Gate"
+  latitude    Float
+  longitude   Float
+  address     String?
+  routeId     Int
+  stopOrder   Int      // Order in the route (1, 2, 3...)
+  avgWaitTime Int?     // Average wait time in seconds
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  route    Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  students Student[]
+
+  @@unique([routeId, stopOrder])
+}
+
+// Parent/Guardian account
+model Parent {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  phone        String
+  passwordHash String
+  schoolId     Int
+  fcmToken     String?  // Firebase Cloud Messaging token
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  school   School    @relation(fields: [schoolId], references: [id])
+  students Student[]
+}
+
+// Student (child)
+model Student {
+  id        Int      @id @default(autoincrement())
+  name      String
+  grade     String?  // e.g., "Class 5A"
+  rollNo    String?
+  schoolId  Int
+  parentId  Int
+  busId     Int?
+  stopId    Int?     // Assigned pickup/dropoff stop
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  school School  @relation(fields: [schoolId], references: [id])
+  parent Parent  @relation(fields: [parentId], references: [id])
+  bus    Bus?    @relation(fields: [busId], references: [id])
+  stop   Stop?   @relation(fields: [stopId], references: [id])
+}
+
+// Notification log
+model Notification {
+  id        Int              @id @default(autoincrement())
+  parentId  Int
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+enum NotificationType {
+  BUS_ARRIVING
+  BUS_DEPARTED
+  BUS_DELAYED
+  CHILD_BOARDED
+  CHILD_DROPPED
+  GENERAL
+}
