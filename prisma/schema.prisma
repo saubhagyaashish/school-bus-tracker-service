@@ -9,59 +9,96 @@ datasource db {
   provider = "postgresql"
 }
 
-// School entity
+// ==================== AUTH ====================
+
+enum Role {
+  SUPER_ADMIN
+  SCHOOL_ADMIN
+  DRIVER
+  PARENT
+}
+
+// Unified User model for authentication
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role
+  schoolId     Int? // null for SUPER_ADMIN
+  isActive     Boolean  @default(true)
+  isApproved   Boolean  @default(true) // false for self-registered parents
+  isFirstLogin Boolean  @default(true) // force password change
+  fcmToken     String? // push notifications
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  school   School?   @relation(fields: [schoolId], references: [id])
+  students Student[] // for PARENT role
+  buses    Bus[] // for DRIVER role (assigned buses)
+
+  @@index([role])
+  @@index([schoolId])
+}
+
+// Refresh tokens for session management
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ==================== SCHOOL ====================
+
 model School {
   id        Int      @id @default(autoincrement())
   name      String
   address   String?
   phone     String?
+  code      String   @unique // for parent registration
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  users    User[]
   buses    Bus[]
   routes   Route[]
-  parents  Parent[]
   students Student[]
 }
 
-// Bus linked to Traccar device
+// ==================== BUS & ROUTES ====================
+
 model Bus {
   id              Int      @id @default(autoincrement())
-  name            String // e.g., "Bus 101"
+  name            String
   licensePlate    String?
-  traccarDeviceId Int // Links to Traccar device ID
-  traccarUniqueId String // Traccar device uniqueId for lookup
+  traccarDeviceId Int?
+  traccarUniqueId String?
   capacity        Int?
   schoolId        Int
-  driverId        Int?
+  driverId        Int? // assigned driver (User with DRIVER role)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   school   School    @relation(fields: [schoolId], references: [id])
-  driver   Driver?   @relation(fields: [driverId], references: [id])
+  driver   User?     @relation(fields: [driverId], references: [id])
   routes   Route[]
   students Student[]
 
   @@unique([traccarDeviceId])
   @@unique([traccarUniqueId])
+  @@index([schoolId])
 }
 
-// Driver
-model Driver {
-  id        Int      @id @default(autoincrement())
-  name      String
-  phone     String
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  buses Bus[]
-}
-
-// Route with ordered stops
 model Route {
   id          Int       @id @default(autoincrement())
-  name        String // e.g., "Morning Route A"
+  name        String
   description String?
   type        RouteType @default(MORNING)
   schoolId    Int
@@ -73,6 +110,8 @@ model Route {
   school School @relation(fields: [schoolId], references: [id])
   bus    Bus?   @relation(fields: [busId], references: [id])
   stops  Stop[]
+
+  @@index([schoolId])
 }
 
 enum RouteType {
@@ -81,16 +120,15 @@ enum RouteType {
   BOTH
 }
 
-// Bus stop location
 model Stop {
   id          Int      @id @default(autoincrement())
-  name        String // e.g., "Green Park Main Gate"
+  name        String
   latitude    Float
   longitude   Float
   address     String?
   routeId     Int
-  stopOrder   Int // Order in the route (1, 2, 3...)
-  avgWaitTime Int? // Average wait time in seconds
+  stopOrder   Int
+  avgWaitTime Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -100,51 +138,41 @@ model Stop {
   @@unique([routeId, stopOrder])
 }
 
-// Parent/Guardian account
-model Parent {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String   @unique
-  phone        String
-  passwordHash String
-  schoolId     Int
-  fcmToken     String? // Firebase Cloud Messaging token
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+// ==================== STUDENT ====================
 
-  school   School    @relation(fields: [schoolId], references: [id])
-  students Student[]
-}
-
-// Student (child)
 model Student {
   id        Int      @id @default(autoincrement())
   name      String
-  grade     String? // e.g., "Class 5A"
+  grade     String?
   rollNo    String?
   schoolId  Int
-  parentId  Int
+  parentId  Int // User with PARENT role
   busId     Int?
-  stopId    Int? // Assigned pickup/dropoff stop
+  stopId    Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   school School @relation(fields: [schoolId], references: [id])
-  parent Parent @relation(fields: [parentId], references: [id])
+  parent User   @relation(fields: [parentId], references: [id])
   bus    Bus?   @relation(fields: [busId], references: [id])
   stop   Stop?  @relation(fields: [stopId], references: [id])
+
+  @@index([parentId])
+  @@index([schoolId])
 }
 
-// Notification log
+// ==================== NOTIFICATIONS ====================
+
 model Notification {
   id        Int              @id @default(autoincrement())
-  parentId  Int
+  userId    Int // changed from parentId
   type      NotificationType
   title     String
   message   String
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
+
+  @@index([userId])
 }
 
 enum NotificationType {
@@ -154,4 +182,28 @@ enum NotificationType {
   CHILD_BOARDED
   CHILD_DROPPED
   GENERAL
+}
+
+// ==================== ATTENDANCE ====================
+
+model Attendance {
+  id        Int              @id @default(autoincrement())
+  studentId Int
+  busId     Int
+  date      DateTime         @db.Date
+  boardedAt DateTime?
+  droppedAt DateTime?
+  status    AttendanceStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([studentId, busId, date])
+  @@index([date])
+}
+
+enum AttendanceStatus {
+  PENDING
+  BOARDED
+  DROPPED
+  ABSENT
 }
