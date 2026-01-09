@@ -15,42 +15,63 @@ interface SimulatedBus {
     direction: 1 | -1; // 1 = forward, -1 = backward
 }
 
-// Sample route coordinates (Delhi area)
+// Sample route coordinates (Bihar - Patna area)
+// Route A: Bailey Road to Patna Junction via Gandhi Maidan
 const ROUTE_A: { lat: number; lng: number }[] = [
-    { lat: 28.5672, lng: 77.2100 }, // Green Park
-    { lat: 28.5690, lng: 77.2120 },
-    { lat: 28.5710, lng: 77.2150 },
-    { lat: 28.5730, lng: 77.2180 },
-    { lat: 28.5750, lng: 77.2200 }, // Lajpat Nagar
-    { lat: 28.5770, lng: 77.2230 },
-    { lat: 28.5790, lng: 77.2260 },
-    { lat: 28.5810, lng: 77.2290 },
-    { lat: 28.5830, lng: 77.2320 },
-    { lat: 28.5850, lng: 77.2350 }, // Hauz Khas
-    { lat: 28.5870, lng: 77.2380 },
-    { lat: 28.5890, lng: 77.2410 },
-    { lat: 28.5910, lng: 77.2440 },
-    { lat: 28.5930, lng: 77.2470 },
-    { lat: 28.5950, lng: 77.2500 }, // School
+    { lat: 25.5941, lng: 85.1376 }, // Bailey Road (Start)
+    { lat: 25.5955, lng: 85.1390 },
+    { lat: 25.5968, lng: 85.1405 },
+    { lat: 25.5982, lng: 85.1420 },
+    { lat: 25.5995, lng: 85.1435 }, // Near Patna Zoo
+    { lat: 25.6008, lng: 85.1450 },
+    { lat: 25.6020, lng: 85.1465 },
+    { lat: 25.6035, lng: 85.1480 },
+    { lat: 25.6048, lng: 85.1495 }, // Gandhi Maidan
+    { lat: 25.6062, lng: 85.1510 },
+    { lat: 25.6075, lng: 85.1525 },
+    { lat: 25.6088, lng: 85.1540 },
+    { lat: 25.6100, lng: 85.1555 },
+    { lat: 25.6115, lng: 85.1570 },
+    { lat: 25.6128, lng: 85.1585 }, // Patna Junction (End)
 ];
 
+// Route B: Boring Road to Kankarbagh via Rajendra Nagar
 const ROUTE_B: { lat: number; lng: number }[] = [
-    { lat: 28.5500, lng: 77.2000 }, // Saket
-    { lat: 28.5530, lng: 77.2030 },
-    { lat: 28.5560, lng: 77.2060 },
-    { lat: 28.5590, lng: 77.2090 },
-    { lat: 28.5620, lng: 77.2120 },
-    { lat: 28.5650, lng: 77.2150 },
-    { lat: 28.5680, lng: 77.2180 },
-    { lat: 28.5710, lng: 77.2210 },
-    { lat: 28.5740, lng: 77.2240 },
-    { lat: 28.5770, lng: 77.2270 },
-    { lat: 28.5800, lng: 77.2300 },
-    { lat: 28.5830, lng: 77.2330 },
-    { lat: 28.5860, lng: 77.2360 },
-    { lat: 28.5890, lng: 77.2390 },
-    { lat: 28.5920, lng: 77.2420 },
-    { lat: 28.5950, lng: 77.2500 }, // School
+    { lat: 25.6100, lng: 85.1200 }, // Boring Road (Start)
+    { lat: 25.6085, lng: 85.1220 },
+    { lat: 25.6070, lng: 85.1240 },
+    { lat: 25.6055, lng: 85.1260 }, // Kidwaipuri
+    { lat: 25.6040, lng: 85.1280 },
+    { lat: 25.6025, lng: 85.1300 },
+    { lat: 25.6010, lng: 85.1320 }, // Rajendra Nagar
+    { lat: 25.5995, lng: 85.1340 },
+    { lat: 25.5980, lng: 85.1360 },
+    { lat: 25.5965, lng: 85.1380 },
+    { lat: 25.5950, lng: 85.1400 }, // New Patliputra Colony
+    { lat: 25.5935, lng: 85.1420 },
+    { lat: 25.5920, lng: 85.1440 },
+    { lat: 25.5905, lng: 85.1460 },
+    { lat: 25.5890, lng: 85.1480 },
+    { lat: 25.5875, lng: 85.1500 }, // Kankarbagh (End)
+];
+
+// Route C: Patna University to AIIMS via Ashok Rajpath
+const ROUTE_C: { lat: number; lng: number }[] = [
+    { lat: 25.6189, lng: 85.0950 }, // Patna University (Start)
+    { lat: 25.6175, lng: 85.0980 },
+    { lat: 25.6160, lng: 85.1010 },
+    { lat: 25.6145, lng: 85.1040 }, // Ganga Ghat
+    { lat: 25.6130, lng: 85.1070 },
+    { lat: 25.6115, lng: 85.1100 },
+    { lat: 25.6100, lng: 85.1130 }, // Dak Bungalow
+    { lat: 25.6085, lng: 85.1160 },
+    { lat: 25.6070, lng: 85.1190 },
+    { lat: 25.6055, lng: 85.1220 }, // Mithapur
+    { lat: 25.6040, lng: 85.1250 },
+    { lat: 25.6025, lng: 85.1280 },
+    { lat: 25.6010, lng: 85.1310 },
+    { lat: 25.5995, lng: 85.1340 },
+    { lat: 25.5980, lng: 85.1370 }, // AIIMS Patna (End)
 ];
 
 // Simulated buses
@@ -58,7 +79,7 @@ const buses: SimulatedBus[] = [
     {
         id: 1,
         deviceId: 1,
-        name: 'Bus 101',
+        name: 'Bus 101 - Bailey Road',
         route: ROUTE_A,
         currentIndex: 0,
         speed: 25,
@@ -67,11 +88,20 @@ const buses: SimulatedBus[] = [
     {
         id: 2,
         deviceId: 2,
-        name: 'Bus 102',
+        name: 'Bus 102 - Boring Road',
         route: ROUTE_B,
         currentIndex: 5,
         speed: 30,
         direction: 1,
+    },
+    {
+        id: 3,
+        deviceId: 3,
+        name: 'Bus 103 - University',
+        route: ROUTE_C,
+        currentIndex: 8,
+        speed: 28,
+        direction: -1,
     },
 ];
 
@@ -85,7 +115,7 @@ function calculateBearing(lat1: number, lng1: number, lat2: number, lng2: number
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const y = Math.sin(dLng) * Math.cos(lat2 * Math.PI / 180);
     const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-              Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLng);
+        Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLng);
     let bearing = Math.atan2(y, x) * 180 / Math.PI;
     return (bearing + 360) % 360;
 }
@@ -154,7 +184,7 @@ function updateBusPositions(): void {
     if (io) {
         io.emit('positions', positions);
         io.emit('devices', devices);
-        console.log(`📍 Simulated ${positions.length} bus positions`);
+        console.log(`📍 Simulated ${positions.length} bus positions (Bihar/Patna)`);
     }
 }
 
@@ -163,14 +193,15 @@ function updateBusPositions(): void {
  */
 export function startBusSimulator(socketIo: SocketIOServer, intervalMs: number = 2000): void {
     io = socketIo;
-    
+
     if (simulationInterval) {
         console.log('⚠️ Simulator already running');
         return;
     }
 
-    console.log('🚌 Starting bus simulator...');
+    console.log('🚌 Starting bus simulator (Bihar/Patna region)...');
     console.log(`   Simulating ${buses.length} buses`);
+    console.log(`   Routes: Bailey Road, Boring Road, University`);
     console.log(`   Update interval: ${intervalMs}ms`);
 
     // Send initial positions immediately
@@ -198,4 +229,11 @@ export function stopBusSimulator(): void {
  */
 export function getSimulatedBuses(): SimulatedBus[] {
     return buses;
+}
+
+/**
+ * Get default map center for Bihar/Patna region
+ */
+export function getMapCenter(): { lat: number; lng: number } {
+    return { lat: 25.6000, lng: 85.1350 }; // Central Patna
 }

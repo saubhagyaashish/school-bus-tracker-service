@@ -2,11 +2,11 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // School entity
@@ -27,10 +27,10 @@ model School {
 // Bus linked to Traccar device
 model Bus {
   id              Int      @id @default(autoincrement())
-  name            String   // e.g., "Bus 101"
+  name            String // e.g., "Bus 101"
   licensePlate    String?
-  traccarDeviceId Int      // Links to Traccar device ID
-  traccarUniqueId String   // Traccar device uniqueId for lookup
+  traccarDeviceId Int // Links to Traccar device ID
+  traccarUniqueId String // Traccar device uniqueId for lookup
   capacity        Int?
   schoolId        Int
   driverId        Int?
@@ -60,15 +60,15 @@ model Driver {
 
 // Route with ordered stops
 model Route {
-  id          Int      @id @default(autoincrement())
-  name        String   // e.g., "Morning Route A"
+  id          Int       @id @default(autoincrement())
+  name        String // e.g., "Morning Route A"
   description String?
   type        RouteType @default(MORNING)
   schoolId    Int
   busId       Int?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   school School @relation(fields: [schoolId], references: [id])
   bus    Bus?   @relation(fields: [busId], references: [id])
@@ -84,13 +84,13 @@ enum RouteType {
 // Bus stop location
 model Stop {
   id          Int      @id @default(autoincrement())
-  name        String   // e.g., "Green Park Main Gate"
+  name        String // e.g., "Green Park Main Gate"
   latitude    Float
   longitude   Float
   address     String?
   routeId     Int
-  stopOrder   Int      // Order in the route (1, 2, 3...)
-  avgWaitTime Int?     // Average wait time in seconds
+  stopOrder   Int // Order in the route (1, 2, 3...)
+  avgWaitTime Int? // Average wait time in seconds
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -108,7 +108,7 @@ model Parent {
   phone        String
   passwordHash String
   schoolId     Int
-  fcmToken     String?  // Firebase Cloud Messaging token
+  fcmToken     String? // Firebase Cloud Messaging token
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -121,19 +121,19 @@ model Parent {
 model Student {
   id        Int      @id @default(autoincrement())
   name      String
-  grade     String?  // e.g., "Class 5A"
+  grade     String? // e.g., "Class 5A"
   rollNo    String?
   schoolId  Int
   parentId  Int
   busId     Int?
-  stopId    Int?     // Assigned pickup/dropoff stop
+  stopId    Int? // Assigned pickup/dropoff stop
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  school School  @relation(fields: [schoolId], references: [id])
-  parent Parent  @relation(fields: [parentId], references: [id])
-  bus    Bus?    @relation(fields: [busId], references: [id])
-  stop   Stop?   @relation(fields: [stopId], references: [id])
+  school School @relation(fields: [schoolId], references: [id])
+  parent Parent @relation(fields: [parentId], references: [id])
+  bus    Bus?   @relation(fields: [busId], references: [id])
+  stop   Stop?  @relation(fields: [stopId], references: [id])
 }
 
 // Notification log
